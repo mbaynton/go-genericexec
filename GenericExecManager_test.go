@@ -30,7 +30,7 @@ func sutFactory(taskConfigs map[string]GenericExecConfig, execMocks []string) (*
 	if execMocks == nil {
 		execMocks = []string{"TestHelperExecHandler"}
 	}
-	sut.cmdFactory = func(name string, argValues TemplateGetter, arg ...string) (*exec.Cmd, error) {
+	sut.CmdFactory = func(name string, argValues TemplateGetter, arg ...string) (*exec.Cmd, error) {
 		// Actually make the executable that is run ourselves, with the first subroutine in execMocks acting as main()
 		run := execMocks[0]
 		if len(execMocks) > 1 {
@@ -256,7 +256,7 @@ func TestNewGenericExecManager_FactoryError(t *testing.T) {
 	}
 
 	sut, testLogBuf, _ := sutFactory(taskConfigs, nil)
-	sut.cmdFactory = func(name string, argValues TemplateGetter, arg ...string) (*exec.Cmd, error) {
+	sut.CmdFactory = func(name string, argValues TemplateGetter, arg ...string) (*exec.Cmd, error) {
 		return nil, errors.New("simulated error")
 	}
 
