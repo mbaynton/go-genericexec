@@ -38,7 +38,7 @@ func sutFactory(taskConfigs map[string]GenericExecConfig, execMocks []string) (*
 		}
 
 		// Perform argument substitution.
-		renderedArgs, err := renderArgTemplates(arg, argValues)
+		renderedArgs, err := RenderArgTemplates(arg, argValues)
 		if err != nil {
 			return nil, err
 		}

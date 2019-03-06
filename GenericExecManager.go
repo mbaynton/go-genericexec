@@ -18,7 +18,7 @@ type GenericExecManager struct {
 	mutexQueues           map[string]chan mutexQueueMessage
 	notifyCallback        func(message string)
 
-	cmdFactory func(name string, argValues TemplateGetter, arg ...string) (*exec.Cmd, error)
+	CmdFactory func(name string, argValues TemplateGetter, arg ...string) (*exec.Cmd, error)
 }
 
 type GenericExecManagerInterface interface {
@@ -55,11 +55,11 @@ type TemplateGetter interface {
 
 func NewGenericExecManager(execTaskConfigsByName map[string]GenericExecConfig, log *log.Logger, notifyCallback func(message string)) *GenericExecManager {
 	execManager := GenericExecManager{
-		log: log,
+		log:                   log,
 		execTaskConfigsByName: execTaskConfigsByName,
 		notifyCallback:        notifyCallback,
 	}
-	execManager.cmdFactory = execManager.productionCmdFactory
+	execManager.CmdFactory = execManager.productionCmdFactory
 
 	// Find non-reentrant commands and add queues for them.
 	// Queues are per command, not task name, so if two tasks were configured that run the same
@@ -88,7 +88,7 @@ func (ctx *GenericExecManager) RunTask(taskName string, argValues TemplateGetter
 	if !found {
 		panic(fmt.Sprintf("No task configuration for task \"%s\"", taskName))
 	}
-	cmd, err := ctx.cmdFactory(execConfig.Command, argValues, execConfig.Args...)
+	cmd, err := ctx.CmdFactory(execConfig.Command, argValues, execConfig.Args...)
 	if err != nil {
 		resultChan <- GenericExecResult{
 			Name:     taskName,
@@ -192,7 +192,7 @@ func (ctx *GenericExecManager) mutexQueueConsumer(queue <-chan mutexQueueMessage
 
 func (ctx *GenericExecManager) productionCmdFactory(name string, argValues TemplateGetter, arg ...string) (*exec.Cmd, error) {
 	// Pass arguments through the template engine.
-	renderedArgs, err := renderArgTemplates(arg, argValues)
+	renderedArgs, err := RenderArgTemplates(arg, argValues)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func (ctx *GenericExecManager) productionCmdFactory(name string, argValues Templ
 	return cmd, nil
 }
 
-func renderArgTemplates(args []string, argValues TemplateGetter) ([]string, error) {
+func RenderArgTemplates(args []string, argValues TemplateGetter) ([]string, error) {
 	funcMap := template.FuncMap{
 		"request": argValues.Get,
 	}
